@@ -11,15 +11,15 @@ import ZcashLightClientKit
 import MnemonicSwift
 // swiftlint:disable line_length force_try
 enum DemoAppConfig {
-    static var host = ZcashSDK.isMainnet ? "lightwalletd.electriccoin.co" : "lightwalletd.testnet.electriccoin.co"
-    static var port: Int = 9067
-    static var birthdayHeight: BlockHeight = ZcashSDK.isMainnet ? 935000 : 1386000
-    
     static var seed = try! Mnemonic.deterministicSeedBytes(from: "live combine flight accident slow soda mind bright absent bid hen shy decade biology amazing mix enlist ensure biology rhythm snap duty soap armor")
+    static var host = ZcashSDK.networkHost
+    static var port: Int = ZcashSDK.networkPort
+    static var birthdayHeight: BlockHeight = ZcashSDK.networkBirthday
+
     static var address: String {
         "\(host):\(port)"
     }
-    
+
     static var processorConfig: CompactBlockProcessor.Configuration  = {
         CompactBlockProcessor.Configuration(
             cacheDb: try! cacheDbURLHelper(),
@@ -28,17 +28,35 @@ enum DemoAppConfig {
             network: kZcashNetwork
         )
     }()
-    
+
     static var endpoint: LightWalletEndpoint {
         return LightWalletEndpoint(address: self.host, port: self.port, secure: true)
     }
 }
 
 extension ZcashSDK {
-    static var isMainnet: Bool {
+    static var networkBirthday: Int {
         switch kZcashNetwork.networkType {
-        case .mainnet:  return true
-        case .testnet:  return false
+        case .mainnet:  return 935000
+        case .piratenet: return 850000
+        case .testnet:  return 1386000
         }
     }
+
+    static var networkPort: Int {
+        switch kZcashNetwork.networkType {
+        case .mainnet:  return 9067
+        case .piratenet: return 443
+        case .testnet:  return 9067
+        }
+    }
+
+    static var networkHost: String {
+        switch kZcashNetwork.networkType {
+        case .mainnet:  return "lightwalletd.electriccoin.co"
+        case .piratenet: return "lightd.pirate.black"
+        case .testnet:  return "lightwalletd.testnet.electriccoin.co"
+        }
+    }
+
 }

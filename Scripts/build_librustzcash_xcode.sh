@@ -46,9 +46,9 @@ fi
 
 
 
-if [ ! -d "${RUST_LIB_PATH}" ]; then 
+if [ ! -d "${RUST_LIB_PATH}" ]; then
     mkdir -p "${RUST_LIB_PATH}"
-fi 
+fi
 
 echo "clean up existing artifacts: rm -f ${ZCASH_SDK_RUST_LIB_PATH}/${ZCASH_LIB_RUST_NAME}"
 rm -f "${ZCASH_SDK_RUST_LIB_PATH}/${ZCASH_LIB_RUST_NAME}"
@@ -60,4 +60,3 @@ echo "copying artifacts: cp -f ${ZCASH_LIB_RUST_BUILD_PATH}/universal/release/${
 cp -f "${ZCASH_LIB_RUST_BUILD_PATH}/universal/release/${ZCASH_LIB_RUST_NAME}" "${ZCASH_SDK_RUST_LIB_PATH}/${ZCASH_LIB_RUST_NAME}"
 echo "copying artifacts: cp -f ${ZCASH_LIB_RUST_BUILD_PATH}/universal/release/${ZCASH_LIB_RUST_NAME} ${RUST_LIB_PATH}/${ZCASH_LIB_RUST_NAME}"
 cp -f "${ZCASH_LIB_RUST_BUILD_PATH}/universal/release/${ZCASH_LIB_RUST_NAME}" "${RUST_LIB_PATH}/${ZCASH_LIB_RUST_NAME}"
-

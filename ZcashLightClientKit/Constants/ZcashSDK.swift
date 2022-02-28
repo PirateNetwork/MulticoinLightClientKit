@@ -14,21 +14,13 @@ public protocol ZcashNetwork {
 public enum NetworkType {
     case mainnet
     case testnet
-    
+    case piratenet
+
     var networkId: UInt32 {
         switch self {
-        case .mainnet:  return 1
-        case .testnet:  return 0
-        }
-    }
-}
-
-extension NetworkType {
-    static func forChainName(_ chainame: String) -> NetworkType? {
-        switch chainame {
-        case "test":    return .testnet
-        case "main":    return .mainnet
-        default:        return nil
+        case .piratenet:  return 2
+        case .mainnet:    return 1
+        case .testnet:    return 0
         }
     }
 }
@@ -36,10 +28,16 @@ extension NetworkType {
 public enum ZcashNetworkBuilder {
     public static func network(for networkType: NetworkType) -> ZcashNetwork {
         switch networkType {
-        case .mainnet:  return ZcashMainnet()
-        case .testnet:  return ZcashTestnet()
+        case .piratenet:  return Piratenet()
+        case .mainnet:    return ZcashMainnet()
+        case .testnet:    return ZcashTestnet()
         }
     }
+}
+
+class Piratenet: ZcashNetwork {
+    var networkType: NetworkType = .piratenet
+    var constants: NetworkConstants.Type = ZcashSDKPiratenetConstants.self
 }
 
 class ZcashTestnet: ZcashNetwork {
@@ -60,7 +58,7 @@ public enum ZcashSDK {
     The number of zatoshi that equal 1 ZEC.
     */
     public static var zatoshiPerZEC: BlockHeight = 100_000_000
-    
+
     /**
     The theoretical maximum number of blocks in a reorg, due to other bottlenecks in the protocol design.
     */
@@ -108,12 +106,12 @@ public enum ZcashSDK {
     returning from the background and is exposed via the Synchronizer's isStale function.
     */
     public static var defaultStaleTolerance: Int = 10
-    
+
     /**
     Default Name for LibRustZcash data.db
     */
     public static var defaultDataDbName = "data.db"
-    
+
     /**
     Default Name for Compact Block caches db
     */
@@ -123,7 +121,7 @@ public enum ZcashSDK {
     Default name for pending transactions db
     */
     public static var defaultPendingDbName = "pending.db"
-    
+
     /**
     File name for the sapling spend params
     */
@@ -143,12 +141,23 @@ public enum ZcashSDK {
 }
 
 public protocol NetworkConstants {
+
+    /**
+    The name of the chain expected to be returned by the lightwalletd server
+    **/
+    static var chainName: String { get }
+
+    /**
+    The coin abbrivation
+    **/
+    static var coinAbbr: String { get }
+
     /**
     The height of the first sapling block. When it comes to shielded transactions, we do not need to consider any blocks
     prior to this height, at all.
     */
     static var saplingActivationHeight: BlockHeight { get }
-    
+
     /**
     Default Name for LibRustZcash data.db
     */
@@ -165,33 +174,82 @@ public protocol NetworkConstants {
     static var defaultPendingDbName: String { get }
 
     static var defaultDbNamePrefix: String { get }
-   
+
     /**
     fixed height where the SDK considers that the ZIP-321 was deployed. This is a workaround
     for librustzcash not figuring out the tx fee from the tx itself.
     */
     static var feeChangeHeight: BlockHeight { get }
-    
+
     static func defaultFee(for height: BlockHeight) -> Int64
 }
 
 public extension NetworkConstants {
     static func defaultFee(for height: BlockHeight = BlockHeight.max) -> Int64 {
         guard  height >= feeChangeHeight else { return 10_000 }
-        
+
         return 1_000
     }
 }
 
+public class ZcashSDKPiratenetConstants: NetworkConstants {
+    private init() {}
+
+    /**
+    The name of the chain expected to be returned by the lightwalletd server
+    **/
+    public static var chainName = "main"
+
+    /**
+    The coin abbrivation
+    **/
+    public static var coinAbbr = "ARRR"
+
+    /**
+    The height of the first sapling block. When it comes to shielded transactions, we do not need to consider any blocks
+    prior to this height, at all.
+    */
+    public static var saplingActivationHeight: BlockHeight = 152_855
+
+    /**
+    Default Name for LibRustZcash data.db
+    */
+    public static var defaultDataDbName = "data.db"
+
+    /**
+    Default Name for Compact Block caches db
+    */
+    public static var defaultCacheDbName = "caches.db"
+
+    /**
+    Default name for pending transactions db
+    */
+    public static var defaultPendingDbName = "pending.db"
+
+    public static var defaultDbNamePrefix = "ZcashSdk_piratenet_"
+
+    public static var feeChangeHeight: BlockHeight = 9_999_999
+}
+
 public class ZcashSDKMainnetConstants: NetworkConstants {
     private init() {}
-    
+
+    /**
+    The name of the chain expected to be returned by the lightwalletd server
+    **/
+    public static var chainName = "main"
+
+    /**
+    The coin abbrivation
+    **/
+    public static var coinAbbr = "ZEC"
+
     /**
     The height of the first sapling block. When it comes to shielded transactions, we do not need to consider any blocks
     prior to this height, at all.
     */
     public static var saplingActivationHeight: BlockHeight = 419_200
-    
+
     /**
     Default Name for LibRustZcash data.db
     */
@@ -206,21 +264,31 @@ public class ZcashSDKMainnetConstants: NetworkConstants {
     Default name for pending transactions db
     */
     public static var defaultPendingDbName = "pending.db"
-    
+
     public static var defaultDbNamePrefix = "ZcashSdk_mainnet_"
-    
+
     public static var feeChangeHeight: BlockHeight = 1_077_550
 }
 
 public class ZcashSDKTestnetConstants: NetworkConstants {
     private init() {}
-   
+
+    /**
+    The name of the chain expected to be returned by the lightwalletd server
+    **/
+    public static var chainName = "test"
+
+    /**
+    The coin abbrivation
+    **/
+    public static var coinAbbr = "TAZ"
+
     /**
     The height of the first sapling block. When it comes to shielded transactions, we do not need to consider any blocks
     prior to this height, at all.
     */
     public static var saplingActivationHeight: BlockHeight = 280_000
-   
+
     /**
     Default Name for LibRustZcash data.db
     */
@@ -235,9 +303,9 @@ public class ZcashSDKTestnetConstants: NetworkConstants {
     Default name for pending transactions db
     */
     public static var defaultPendingDbName = "pending.db"
-    
+
     public static var defaultDbNamePrefix = "ZcashSdk_testnet_"
-    
+
     /**
     Estimated height where wallets are supposed to change the fee
     */
